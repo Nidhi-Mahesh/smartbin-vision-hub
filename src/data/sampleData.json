@@ -1,0 +1,70 @@
+
+{
+  "binStatus": {
+    "bin_id": "SB01",
+    "fill_level_percent": 67,
+    "last_updated": "2025-06-21T15:30:00Z",
+    "latest_image": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&h=300&fit=crop",
+    "prediction": {
+      "label": "Recyclable",
+      "confidence": 0.91
+    },
+    "sensor_health": "normal",
+    "connection_status": "online"
+  },
+  "historyData": [
+    {
+      "id": 1,
+      "image": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=300&h=200&fit=crop",
+      "label": "Recyclable",
+      "confidence": 0.94,
+      "timestamp": "2025-06-21T10:30:00Z"
+    },
+    {
+      "id": 2,
+      "image": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=300&h=200&fit=crop",
+      "label": "Organic",
+      "confidence": 0.87,
+      "timestamp": "2025-06-21T09:15:00Z"
+    },
+    {
+      "id": 3,
+      "image": "https://images.unsplash.com/photo-1501854140801-50d01698950b?w=300&h=200&fit=crop",
+      "label": "Non-Recyclable",
+      "confidence": 0.92,
+      "timestamp": "2025-06-21T08:45:00Z"
+    }
+  ],
+  "analyticsData": {
+    "dailyStats": [
+      { "day": "Mon", "Recyclable": 12, "Organic": 8, "Non-Recyclable": 15 },
+      { "day": "Tue", "Recyclable": 18, "Organic": 12, "Non-Recyclable": 10 },
+      { "day": "Wed", "Recyclable": 15, "Organic": 20, "Non-Recyclable": 8 },
+      { "day": "Thu", "Recyclable": 22, "Organic": 15, "Non-Recyclable": 12 },
+      { "day": "Fri", "Recyclable": 28, "Organic": 18, "Non-Recyclable": 14 },
+      { "day": "Sat", "Recyclable": 35, "Organic": 25, "Non-Recyclable": 18 },
+      { "day": "Sun", "Recyclable": 30, "Organic": 22, "Non-Recyclable": 16 }
+    ],
+    "totalWaste": {
+      "Recyclable": 160,
+      "Organic": 120,
+      "Non-Recyclable": 93
+    },
+    "binLevelTimeline": [
+      { "time": "00:00", "level": 15 },
+      { "time": "04:00", "level": 18 },
+      { "time": "08:00", "level": 35 },
+      { "time": "12:00", "level": 52 },
+      { "time": "16:00", "level": 68 },
+      { "time": "20:00", "level": 45 },
+      { "time": "23:59", "level": 30 }
+    ]
+  },
+  "systemConfig": {
+    "model_version": "v2.1.0",
+    "accuracy": 0.892,
+    "last_trained": "2025-06-15T10:00:00Z",
+    "dataset": "TrashNet + TACO",
+    "architecture": "MobileNetV2"
+  }
+}

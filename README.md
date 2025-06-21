@@ -1,73 +1,152 @@
-# Welcome to your Lovable project
 
-## Project info
+# SmartBin - Intelligent Waste Management System
 
-**URL**: https://lovable.dev/projects/8f56ca47-0f07-4b11-8c67-7eebaca5e41b
+A modern, responsive web application for monitoring and managing smart waste bins equipped with IoT sensors and machine learning capabilities.
 
-## How can I edit this code?
+## 🚀 Features
 
-There are several ways of editing your application.
+- **Real-time Dashboard**: Live monitoring of bin fill levels, camera snapshots, and ML predictions
+- **AI Classification**: Display waste categorization results (Recyclable, Organic, Non-Recyclable)
+- **Image History**: Gallery view of captured images with filtering and search capabilities  
+- **Analytics Dashboard**: Comprehensive charts and insights using Recharts
+- **Admin Panel**: System management, logs, and configuration tools
+- **Responsive Design**: Optimized for desktop, tablet, and mobile devices
 
-**Use Lovable**
+## 🛠️ Technology Stack
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/8f56ca47-0f07-4b11-8c67-7eebaca5e41b) and start prompting.
+- **Frontend**: React 18 + TypeScript + Vite
+- **Styling**: Tailwind CSS + shadcn/ui components
+- **Charts**: Recharts for data visualization
+- **Icons**: Lucide React
+- **Routing**: React Router v6
+- **State Management**: React Query (TanStack Query)
 
-Changes made via Lovable will be committed automatically to this repo.
+## 📱 Pages Overview
 
-**Use your preferred IDE**
+### Home Page (/)
+- Project overview and key features
+- Call-to-action buttons to dashboard and analytics
+- Modern hero section with gradient backgrounds
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Live Dashboard (/dashboard)
+- Real-time bin fill level with color-coded status
+- Latest camera capture with timestamp
+- ML prediction results with confidence scores
+- Auto-refresh functionality (5-second intervals)
+- System status indicators
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### History (/history)
+- Paginated gallery of classified images
+- Filter by waste category and date range
+- Responsive table/card layout
+- CSV export functionality
 
-Follow these steps:
+### Analytics (/analytics)
+- Daily/weekly waste classification charts
+- Pie chart for waste distribution
+- Bin usage timeline graphs
+- Key performance metrics
+- AI-generated insights
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### Admin Panel (/admin)
+- System logs and monitoring
+- Bin level reset functionality
+- ML model retraining triggers
+- Admin notes and comments
+- System configuration display
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## 🔧 Setup Instructions
 
-# Step 3: Install the necessary dependencies.
-npm i
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd smartbin-frontend
+   ```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Start development server**
+   ```bash
+   npm run dev
+   ```
+
+4. **Build for production**
+   ```bash
+   npm run build
+   ```
+
+## 🔐 Demo Credentials
+
+For the admin panel demo:
+- **Email**: admin@smartbin.com
+- **Password**: smartbin123
+
+## 📊 Sample Data Structure
+
+The application uses mock data that simulates real IoT sensor inputs:
+
+```json
+{
+  "bin_id": "SB01",
+  "fill_level_percent": 67,
+  "last_updated": "2025-06-21T15:30:00Z",
+  "latest_image": "https://example.com/image.jpg",
+  "prediction": {
+    "label": "Recyclable",
+    "confidence": 0.91
+  }
+}
 ```
 
-**Edit a file directly in GitHub**
+## 🌟 Key Design Features
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+- **Modern UI**: Clean, card-based layout with subtle animations
+- **Color-coded Status**: Green (empty), Orange (half full), Red (full)
+- **Responsive Design**: Mobile-first approach with breakpoint optimizations
+- **Accessibility**: ARIA labels, keyboard navigation, and color contrast compliance
+- **Performance**: Optimized images, lazy loading, and efficient re-renders
 
-**Use GitHub Codespaces**
+## 🔮 Future Enhancements
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+- Firebase/Firestore integration for real data
+- Real-time WebSocket connections
+- Push notifications for bin status alerts
+- Multi-bin management dashboard
+- Advanced ML model configuration
+- Historical data export and reporting
 
-## What technologies are used for this project?
+## 📝 Environment Variables
 
-This project is built with:
+Create a `.env` file for production deployment:
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+```env
+VITE_API_BASE_URL=https://your-api-endpoint.com
+VITE_FIREBASE_CONFIG=your-firebase-config
+VITE_MQTT_BROKER_URL=your-mqtt-broker
+```
 
-## How can I deploy this project?
+## 🤝 Contributing
 
-Simply open [Lovable](https://lovable.dev/projects/8f56ca47-0f07-4b11-8c67-7eebaca5e41b) and click on Share -> Publish.
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-## Can I connect a custom domain to my Lovable project?
+## 📄 License
 
-Yes, you can!
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## 🎯 Hardware Integration
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+This frontend is designed to work with:
+- **Sensors**: HC-SR04 Ultrasonic sensor for fill level detection
+- **Camera**: Raspberry Pi Camera Module for image capture
+- **MCU**: Raspberry Pi 4 or similar for processing
+- **Connectivity**: WiFi/Ethernet for data transmission
+- **Protocols**: MQTT, HTTP REST APIs, WebSocket for real-time updates
+
+Built with ❤️ for sustainable waste management and smart city initiatives.
