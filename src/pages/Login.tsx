@@ -62,7 +62,7 @@ const Login = () => {
           localStorage.setItem("smartbin_admin", "true");
           navigate("/dashboard");
         } else {
-          setError("Please enter valid credentials. Demo: admin@smartbin.com / smartbin123");
+          setError("Please enter valid credentials.");
         }
       }
       setIsLoading(false);
@@ -176,21 +176,6 @@ const Login = () => {
                 }
               </button>
             </div>
-
-            {!isSignup && (
-              <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                <h3 className="font-medium text-gray-900 mb-2">Demo Credentials</h3>
-                <p className="text-sm text-gray-600 mb-1">
-                  <strong>Email:</strong> admin@smartbin.com
-                </p>
-                <p className="text-sm text-gray-600">
-                  <strong>Password:</strong> smartbin123
-                </p>
-                <p className="text-xs text-gray-500 mt-2">
-                  Or use any email/password for general access
-                </p>
-              </div>
-            )}
           </CardContent>
         </Card>
 
