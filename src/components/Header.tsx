@@ -1,10 +1,24 @@
 
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Database, TrendingUp, Camera, Settings, Home } from "lucide-react";
+import { Database, TrendingUp, Camera, Settings, Home, LogOut, Shield } from "lucide-react";
+import { useState, useEffect } from "react";
 
 const Header = () => {
   const location = useLocation();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  
+  useEffect(() => {
+    // Check if user is logged in
+    const adminAuth = localStorage.getItem("smartbin_admin");
+    setIsLoggedIn(adminAuth === "true");
+  }, [location]);
+
+  const handleLogout = () => {
+    localStorage.removeItem("smartbin_admin");
+    setIsLoggedIn(false);
+    window.location.href = "/";
+  };
   
   const navItems = [
     { path: "/", label: "Home", icon: Home },
@@ -44,12 +58,33 @@ const Header = () => {
             ))}
           </nav>
 
-          <Link to="/login">
-            <Button variant="outline" className="flex items-center space-x-2">
-              <Settings size={16} />
-              <span>Admin</span>
-            </Button>
-          </Link>
+          <div className="flex items-center space-x-2">
+            {isLoggedIn ? (
+              <>
+                <Link to="/admin">
+                  <Button variant="outline" className="flex items-center space-x-2">
+                    <Shield size={16} />
+                    <span>Admin Panel</span>
+                  </Button>
+                </Link>
+                <Button 
+                  onClick={handleLogout}
+                  variant="outline" 
+                  className="flex items-center space-x-2 text-red-600 border-red-200 hover:bg-red-50"
+                >
+                  <LogOut size={16} />
+                  <span>Logout</span>
+                </Button>
+              </>
+            ) : (
+              <Link to="/login">
+                <Button variant="outline" className="flex items-center space-x-2">
+                  <Settings size={16} />
+                  <span>Login</span>
+                </Button>
+              </Link>
+            )}
+          </div>
         </div>
 
         {/* Mobile Navigation */}
@@ -70,6 +105,18 @@ const Header = () => {
               </Button>
             </Link>
           ))}
+          {isLoggedIn && (
+            <Link to="/admin">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="flex items-center space-x-2 whitespace-nowrap text-gray-600"
+              >
+                <Shield size={14} />
+                <span>Admin</span>
+              </Button>
+            </Link>
+          )}
         </nav>
       </div>
     </header>
