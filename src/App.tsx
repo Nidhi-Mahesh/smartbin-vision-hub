@@ -10,7 +10,6 @@ import History from "./pages/History";
 import Analytics from "./pages/Analytics";
 import CameraClassifier from "./pages/CameraClassifier";
 import Login from "./pages/Login";
-import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,7 +27,6 @@ const App = () => (
           <Route path="/history" element={<History />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/admin" element={<Admin />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
