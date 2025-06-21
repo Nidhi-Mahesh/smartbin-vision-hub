@@ -1,43 +1,77 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { TrendingUp, PieChart, BarChart, Download } from "lucide-react";
-import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart as RechartsPieChart, Pie, Cell, LineChart, Line } from "recharts";
+import { Badge } from "@/components/ui/badge";
+import { TrendingUp, Download, Calendar, BarChart3, PieChart, Clock, Target } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart as RechartsPieChart, Cell, BarChart, Bar } from 'recharts';
 import Header from "@/components/Header";
 
 const Analytics = () => {
-  // Sample analytics data
-  const dailyData = [
-    { day: "Mon", Recyclable: 12, Organic: 8, "Non-Recyclable": 15 },
-    { day: "Tue", Recyclable: 18, Organic: 12, "Non-Recyclable": 10 },
-    { day: "Wed", Recyclable: 15, Organic: 20, "Non-Recyclable": 8 },
-    { day: "Thu", Recyclable: 22, Organic: 15, "Non-Recyclable": 12 },
-    { day: "Fri", Recyclable: 28, Organic: 18, "Non-Recyclable": 14 },
-    { day: "Sat", Recyclable: 35, Organic: 25, "Non-Recyclable": 18 },
-    { day: "Sun", Recyclable: 30, Organic: 22, "Non-Recyclable": 16 }
+  // Sample data for charts
+  const weeklyData = [
+    { day: 'Mon', organic: 65, inorganic: 45 },
+    { day: 'Tue', organic: 70, inorganic: 52 },
+    { day: 'Wed', organic: 55, inorganic: 48 },
+    { day: 'Thu', organic: 80, inorganic: 65 },
+    { day: 'Fri', organic: 75, inorganic: 58 },
+    { day: 'Sat', organic: 90, inorganic: 70 },
+    { day: 'Sun', organic: 45, inorganic: 35 },
   ];
 
-  const pieData = [
-    { name: "Recyclable", value: 160, color: "#3B82F6" },
-    { name: "Organic", value: 120, color: "#10B981" },
-    { name: "Non-Recyclable", value: 93, color: "#6B7280" }
+  const monthlyTrend = [
+    { month: 'Jan', organic: 1200, inorganic: 800 },
+    { month: 'Feb', organic: 1100, inorganic: 750 },
+    { month: 'Mar', organic: 1300, inorganic: 900 },
+    { month: 'Apr', organic: 1250, inorganic: 850 },
+    { month: 'May', organic: 1400, inorganic: 950 },
+    { month: 'Jun', organic: 1350, inorganic: 920 },
   ];
 
-  const binLevelData = [
-    { time: "00:00", level: 15 },
-    { time: "04:00", level: 18 },
-    { time: "08:00", level: 35 },
-    { time: "12:00", level: 52 },
-    { time: "16:00", level: 68 },
-    { time: "20:00", level: 45 },
-    { time: "23:59", level: 30 }
+  const wasteDistribution = [
+    { name: 'Organic', value: 65, color: '#22c55e' },
+    { name: 'Inorganic', value: 35, color: '#3b82f6' },
   ];
 
-  const totalWaste = pieData.reduce((sum, item) => sum + item.value, 0);
+  const fillRateData = [
+    { time: '00:00', organic: 20, inorganic: 15 },
+    { time: '04:00', organic: 25, inorganic: 18 },
+    { time: '08:00', organic: 45, inorganic: 35 },
+    { time: '12:00', organic: 70, inorganic: 55 },
+    { time: '16:00', organic: 85, inorganic: 70 },
+    { time: '20:00', organic: 90, inorganic: 75 },
+  ];
 
-  const exportReport = () => {
-    // In a real app, this would generate a comprehensive report
-    console.log("Exporting analytics report...");
+  // Prediction data based on past trends
+  const predictionData = {
+    organic: {
+      nextFillTime: "Tomorrow 2:30 PM",
+      confidence: 87,
+      trend: "increasing",
+      avgDailyFill: 23.5
+    },
+    inorganic: {
+      nextFillTime: "Day after tomorrow 11:15 AM", 
+      confidence: 92,
+      trend: "stable",
+      avgDailyFill: 18.2
+    }
+  };
+
+  const handleExportCSV = () => {
+    const csvData = weeklyData.map(row => 
+      `${row.day},${row.organic},${row.inorganic}`
+    ).join('\n');
+    const blob = new Blob([`Day,Organic,Inorganic\n${csvData}`], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'smartbin-analytics.csv';
+    a.click();
+  };
+
+  const handleExportPDF = () => {
+    // Placeholder for PDF export
+    alert('PDF export would be implemented with a library like jsPDF');
   };
 
   return (
@@ -48,214 +82,215 @@ const Analytics = () => {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
-            <p className="text-gray-600 mt-2">Comprehensive waste management insights and trends</p>
+            <p className="text-gray-600 mt-2">Insights and trends from your SmartBin data</p>
           </div>
           
-          <Button onClick={exportReport} className="flex items-center space-x-2">
-            <Download size={16} />
-            <span>Export Report</span>
-          </Button>
+          <div className="flex items-center space-x-4">
+            <Button onClick={handleExportCSV} variant="outline" className="flex items-center space-x-2">
+              <Download size={16} />
+              <span>Export CSV</span>
+            </Button>
+            <Button onClick={handleExportPDF} variant="outline" className="flex items-center space-x-2">
+              <Download size={16} />
+              <span>Export PDF</span>
+            </Button>
+          </div>
         </div>
 
         {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Total Items</p>
-                  <p className="text-3xl font-bold text-gray-900">{totalWaste}</p>
-                </div>
-                <TrendingUp className="text-blue-600" size={24} />
-              </div>
-              <p className="text-sm text-green-600 mt-2">+12% from last week</p>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Waste Today</CardTitle>
+              <BarChart3 className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">24.5 kg</div>
+              <p className="text-xs text-muted-foreground">+12% from yesterday</p>
             </CardContent>
           </Card>
-
+          
           <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Recyclable</p>
-                  <p className="text-3xl font-bold text-blue-600">160</p>
-                </div>
-                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                  <div className="w-4 h-4 bg-blue-600 rounded-full"></div>
-                </div>
-              </div>
-              <p className="text-sm text-gray-500 mt-2">{Math.round((160/totalWaste) * 100)}% of total</p>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Avg Fill Rate</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">2.1%/hr</div>
+              <p className="text-xs text-muted-foreground">Stable trend</p>
             </CardContent>
           </Card>
-
+          
           <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Organic</p>
-                  <p className="text-3xl font-bold text-green-600">120</p>
-                </div>
-                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                  <div className="w-4 h-4 bg-green-600 rounded-full"></div>
-                </div>
-              </div>
-              <p className="text-sm text-gray-500 mt-2">{Math.round((120/totalWaste) * 100)}% of total</p>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Collections This Week</CardTitle>
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">14</div>
+              <p className="text-xs text-muted-foreground">2 per day average</p>
             </CardContent>
           </Card>
-
+          
           <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Non-Recyclable</p>
-                  <p className="text-3xl font-bold text-gray-600">93</p>
-                </div>
-                <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
-                  <div className="w-4 h-4 bg-gray-600 rounded-full"></div>
-                </div>
-              </div>
-              <p className="text-sm text-gray-500 mt-2">{Math.round((93/totalWaste) * 100)}% of total</p>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Efficiency Score</CardTitle>
+              <Target className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">94%</div>
+              <p className="text-xs text-muted-foreground">+2% this month</p>
             </CardContent>
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          {/* Daily Waste Categories */}
+        {/* Prediction Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <BarChart className="text-blue-600" size={20} />
-                <span>Daily Waste Classification</span>
+                <Target className="text-green-600" size={20} />
+                <span>Next Fill Predictions</span>
               </CardTitle>
-              <CardDescription>Breakdown by category over the past week</CardDescription>
+              <CardDescription>AI-powered predictions based on historical data</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-medium text-green-800">Organic Bin 🍌</h4>
+                    <Badge className="bg-green-600">{predictionData.organic.confidence}% confident</Badge>
+                  </div>
+                  <div className="text-sm text-green-700">
+                    <div className="mb-1">
+                      <Clock size={12} className="inline mr-1" />
+                      Expected full: <strong>{predictionData.organic.nextFillTime}</strong>
+                    </div>
+                    <div className="mb-1">
+                      <TrendingUp size={12} className="inline mr-1" />
+                      Trend: <strong>{predictionData.organic.trend}</strong>
+                    </div>
+                    <div>
+                      Daily avg: <strong>{predictionData.organic.avgDailyFill}% fill</strong>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-medium text-blue-800">Inorganic Bin 🧴</h4>
+                    <Badge className="bg-blue-600">{predictionData.inorganic.confidence}% confident</Badge>
+                  </div>
+                  <div className="text-sm text-blue-700">
+                    <div className="mb-1">
+                      <Clock size={12} className="inline mr-1" />
+                      Expected full: <strong>{predictionData.inorganic.nextFillTime}</strong>
+                    </div>
+                    <div className="mb-1">
+                      <TrendingUp size={12} className="inline mr-1" />
+                      Trend: <strong>{predictionData.inorganic.trend}</strong>
+                    </div>
+                    <div>
+                      Daily avg: <strong>{predictionData.inorganic.avgDailyFill}% fill</strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <PieChart className="text-blue-600" size={20} />
+                <span>Waste Distribution</span>
+              </CardTitle>
+              <CardDescription>Overall waste composition this month</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={200}>
+                <RechartsPieChart>
+                  <Pie
+                    data={wasteDistribution}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={40}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                    label={({ name, value }) => `${name}: ${value}%`}
+                  >
+                    {wasteDistribution.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </RechartsPieChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <Card>
+            <CardHeader>
+              <CardTitle>Weekly Fill Levels</CardTitle>
+              <CardDescription>Daily maximum fill percentage for each bin</CardDescription>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
-                <RechartsBarChart data={dailyData}>
+                <LineChart data={weeklyData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="day" />
                   <YAxis />
                   <Tooltip />
-                  <Bar dataKey="Recyclable" fill="#3B82F6" />
-                  <Bar dataKey="Organic" fill="#10B981" />
-                  <Bar dataKey="Non-Recyclable" fill="#6B7280" />
-                </RechartsBarChart>
+                  <Legend />
+                  <Line type="monotone" dataKey="organic" stroke="#22c55e" strokeWidth={2} name="Organic %" />
+                  <Line type="monotone" dataKey="inorganic" stroke="#3b82f6" strokeWidth={2} name="Inorganic %" />
+                </LineChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
 
-          {/* Waste Distribution */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <PieChart className="text-green-600" size={20} />
-                <span>Waste Distribution</span>
-              </CardTitle>
-              <CardDescription>Total waste breakdown by category</CardDescription>
+              <CardTitle>Daily Fill Pattern</CardTitle>
+              <CardDescription>Fill levels throughout the day</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center space-x-8">
-                <ResponsiveContainer width="60%" height={250}>
-                  <RechartsPieChart>
-                    <Pie
-                      data={pieData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={40}
-                      outerRadius={80}
-                      paddingAngle={5}
-                      dataKey="value"
-                    >
-                      {pieData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </RechartsPieChart>
-                </ResponsiveContainer>
-                <div className="space-y-3">
-                  {pieData.map((item, index) => (
-                    <div key={index} className="flex items-center space-x-3">
-                      <div 
-                        className="w-4 h-4 rounded-full"
-                        style={{ backgroundColor: item.color }}
-                      />
-                      <div>
-                        <p className="font-medium text-gray-900">{item.name}</p>
-                        <p className="text-sm text-gray-600">{item.value} items</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={fillRateData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="time" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="organic" fill="#22c55e" name="Organic %" />
+                  <Bar dataKey="inorganic" fill="#3b82f6" name="Inorganic %" />
+                </BarChart>
+              </ResponsiveContainer>
             </CardContent>
           </Card>
         </div>
 
-        {/* Bin Usage Timeline */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <TrendingUp className="text-purple-600" size={20} />
-              <span>Bin Fill Level Timeline</span>
-            </CardTitle>
-            <CardDescription>Bin capacity usage throughout the day</CardDescription>
+            <CardTitle>Monthly Waste Volume Trends</CardTitle>
+            <CardDescription>Total waste collected per month (kg)</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={binLevelData}>
+            <ResponsiveContainer width="100%" height={400}>
+              <LineChart data={monthlyTrend}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="time" />
+                <XAxis dataKey="month" />
                 <YAxis />
                 <Tooltip />
-                <Line 
-                  type="monotone" 
-                  dataKey="level" 
-                  stroke="#8B5CF6" 
-                  strokeWidth={3}
-                  dot={{ fill: "#8B5CF6", strokeWidth: 2, r: 6 }}
-                />
+                <Legend />
+                <Line type="monotone" dataKey="organic" stroke="#22c55e" strokeWidth={3} name="Organic (kg)" />
+                <Line type="monotone" dataKey="inorganic" stroke="#3b82f6" strokeWidth={3} name="Inorganic (kg)" />
               </LineChart>
             </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Insights */}
-        <Card className="mt-8">
-          <CardHeader>
-            <CardTitle>Key Insights</CardTitle>
-            <CardDescription>AI-generated insights from your waste data</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <h3 className="font-semibold text-blue-900 mb-2">Recycling Performance</h3>
-                <p className="text-blue-800 text-sm">
-                  Recyclable waste accounts for 43% of total waste, indicating good sorting habits. 
-                  Consider promoting recycling awareness to increase this percentage.
-                </p>
-              </div>
-              <div className="bg-green-50 p-4 rounded-lg">
-                <h3 className="font-semibold text-green-900 mb-2">Peak Usage Hours</h3>
-                <p className="text-green-800 text-sm">
-                  Bin usage peaks between 12-16:00. Consider scheduling collections during 
-                  off-peak hours for optimal efficiency.
-                </p>
-              </div>
-              <div className="bg-orange-50 p-4 rounded-lg">
-                <h3 className="font-semibold text-orange-900 mb-2">Weekly Trend</h3>
-                <p className="text-orange-800 text-sm">
-                  Weekend waste volume is 25% higher than weekdays. Plan for increased 
-                  capacity during weekend periods.
-                </p>
-              </div>
-              <div className="bg-purple-50 p-4 rounded-lg">
-                <h3 className="font-semibold text-purple-900 mb-2">ML Model Accuracy</h3>
-                <p className="text-purple-800 text-sm">
-                  Current classification accuracy is 89%. Consider retraining the model 
-                  with additional data to improve performance.
-                </p>
-              </div>
-            </div>
           </CardContent>
         </Card>
       </div>

@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Leaf, Recycle, Clock, AlertTriangle, ArrowUp } from "lucide-react";
+import { Leaf, Recycle, Clock, AlertTriangle, ArrowUp, Battery, Wrench, Zap } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import Header from "@/components/Header";
 import { useToast } from "@/hooks/use-toast";
@@ -13,11 +13,17 @@ const Dashboard = () => {
   const [binData, setBinData] = useState({
     organic: {
       fill_level: 45,
-      last_updated: new Date().toISOString()
+      last_updated: new Date().toISOString(),
+      battery_level: 85,
+      last_maintenance: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
+      fill_rate: 2.3 // percentage per hour
     },
     inorganic: {
       fill_level: 78,
-      last_updated: new Date().toISOString()
+      last_updated: new Date().toISOString(),
+      battery_level: 92,
+      last_maintenance: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
+      fill_rate: 1.8 // percentage per hour
     }
   });
 
@@ -25,17 +31,47 @@ const Dashboard = () => {
   const [alertsEnabled, setAlertsEnabled] = useState(true);
   const { toast } = useToast();
 
+  // Calculate estimated time to full
+  const getTimeToFull = (currentLevel: number, fillRate: number) => {
+    if (fillRate <= 0) return "N/A";
+    const remainingCapacity = 100 - currentLevel;
+    const hoursToFull = remainingCapacity / fillRate;
+    
+    if (hoursToFull < 1) return `${Math.round(hoursToFull * 60)} mins`;
+    if (hoursToFull < 24) return `${Math.round(hoursToFull)} hrs`;
+    return `${Math.round(hoursToFull / 24)} days`;
+  };
+
+  // Calculate days since last maintenance
+  const getDaysSinceLastMaintenance = (lastMaintenance: string) => {
+    const days = Math.floor((Date.now() - new Date(lastMaintenance).getTime()) / (1000 * 60 * 60 * 24));
+    return days;
+  };
+
+  // Get battery status
+  const getBatteryStatus = (level: number) => {
+    if (level > 70) return { color: "text-green-600", bgColor: "bg-green-100", text: "Good" };
+    if (level > 30) return { color: "text-yellow-600", bgColor: "bg-yellow-100", text: "Medium" };
+    return { color: "text-red-600", bgColor: "bg-red-100", text: "Low" };
+  };
+
   useEffect(() => {
     if (autoRefresh) {
       const interval = setInterval(() => {
         setBinData(prev => ({
           organic: {
-            fill_level: Math.max(0, Math.min(100, prev.organic.fill_level + (Math.random() - 0.5) * 8)),
-            last_updated: new Date().toISOString()
+            ...prev.organic,
+            fill_level: Math.max(0, Math.min(100, prev.organic.fill_level + (Math.random() - 0.3) * 2)),
+            last_updated: new Date().toISOString(),
+            battery_level: Math.max(0, Math.min(100, prev.organic.battery_level + (Math.random() - 0.5) * 2)),
+            fill_rate: Math.max(0.1, prev.organic.fill_rate + (Math.random() - 0.5) * 0.2)
           },
           inorganic: {
-            fill_level: Math.max(0, Math.min(100, prev.inorganic.fill_level + (Math.random() - 0.5) * 8)),
-            last_updated: new Date().toISOString()
+            ...prev.inorganic,
+            fill_level: Math.max(0, Math.min(100, prev.inorganic.fill_level + (Math.random() - 0.3) * 2)),
+            last_updated: new Date().toISOString(),
+            battery_level: Math.max(0, Math.min(100, prev.inorganic.battery_level + (Math.random() - 0.5) * 2)),
+            fill_rate: Math.max(0.1, prev.inorganic.fill_rate + (Math.random() - 0.5) * 0.2)
           }
         }));
       }, 5000);
@@ -61,6 +97,20 @@ const Dashboard = () => {
           variant: "destructive"
         });
       }
+      if (binData.organic.battery_level < 20) {
+        toast({
+          title: "Low Battery Alert!",
+          description: "Organic bin battery is below 20%",
+          variant: "destructive"
+        });
+      }
+      if (binData.inorganic.battery_level < 20) {
+        toast({
+          title: "Low Battery Alert!",
+          description: "Inorganic bin battery is below 20%",
+          variant: "destructive"
+        });
+      }
     }
   }, [binData, alertsEnabled, toast]);
 
@@ -72,6 +122,25 @@ const Dashboard = () => {
 
   const organicStatus = getBinStatus(binData.organic.fill_level);
   const inorganicStatus = getBinStatus(binData.inorganic.fill_level);
+  const organicBattery = getBatteryStatus(binData.organic.battery_level);
+  const inorganicBattery = getBatteryStatus(binData.inorganic.battery_level);
+
+  const handleManualRefresh = () => {
+    setBinData(prev => ({
+      organic: {
+        ...prev.organic,
+        last_updated: new Date().toISOString()
+      },
+      inorganic: {
+        ...prev.inorganic,
+        last_updated: new Date().toISOString()
+      }
+    }));
+    toast({
+      title: "Data Refreshed",
+      description: "Bin data has been updated manually"
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -82,9 +151,21 @@ const Dashboard = () => {
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Live Dashboard</h1>
             <p className="text-gray-600 mt-2">Real-time monitoring of SmartBin fill levels</p>
+            <div className="text-sm text-gray-500 mt-1">
+              <Clock size={12} className="inline mr-1" />
+              Last update: {new Date().toLocaleString()}
+            </div>
           </div>
           
           <div className="flex items-center space-x-4">
+            <Button
+              onClick={handleManualRefresh}
+              variant="outline"
+              className="flex items-center space-x-2"
+            >
+              <ArrowUp size={16} />
+              <span>Manual Refresh</span>
+            </Button>
             <Button
               onClick={() => setAutoRefresh(!autoRefresh)}
               variant={autoRefresh ? "default" : "outline"}
@@ -105,11 +186,12 @@ const Dashboard = () => {
         </div>
 
         {/* Alert Banners */}
-        {(binData.organic.fill_level > 90 || binData.inorganic.fill_level > 90) && (
+        {(binData.organic.fill_level > 90 || binData.inorganic.fill_level > 90 || 
+          binData.organic.battery_level < 20 || binData.inorganic.battery_level < 20) && (
           <Alert className="mb-6 border-red-200 bg-red-50">
             <AlertTriangle className="h-4 w-4 text-red-600" />
             <AlertDescription className="text-red-800">
-              <strong>Critical Alert:</strong> One or more bins exceed 90% capacity and require immediate attention!
+              <strong>Critical Alert:</strong> One or more bins require immediate attention!
             </AlertDescription>
           </Alert>
         )}
@@ -118,9 +200,17 @@ const Dashboard = () => {
           {/* Organic Bin */}
           <Card className={`${organicStatus.bgColor} ${binData.organic.fill_level > 90 ? 'animate-pulse border-red-500' : ''}`}>
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Leaf className="text-green-600" size={24} />
-                <span>Organic Bin 🍌</span>
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Leaf className="text-green-600" size={24} />
+                  <span>Organic Bin 🍌</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Battery className={organicBattery.color} size={16} />
+                  <span className={`text-sm ${organicBattery.color}`}>
+                    {binData.organic.battery_level}%
+                  </span>
+                </div>
               </CardTitle>
               <CardDescription>Biodegradable waste container</CardDescription>
             </CardHeader>
@@ -139,9 +229,32 @@ const Dashboard = () => {
                   <span>Empty</span>
                   <span>Full</span>
                 </div>
-                <div className="text-center text-sm text-gray-600">
-                  <Clock size={12} className="inline mr-1" />
-                  Last updated: {new Date(binData.organic.last_updated).toLocaleTimeString()}
+                
+                {/* Additional Info */}
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="bg-white/50 p-3 rounded-lg">
+                    <div className="font-medium text-gray-700">Time to Full</div>
+                    <div className="text-blue-600 font-semibold">
+                      {getTimeToFull(binData.organic.fill_level, binData.organic.fill_rate)}
+                    </div>
+                  </div>
+                  <div className="bg-white/50 p-3 rounded-lg">
+                    <div className="font-medium text-gray-700">Fill Rate</div>
+                    <div className="text-purple-600 font-semibold">
+                      {binData.organic.fill_rate.toFixed(1)}%/hr
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="text-center space-y-1">
+                  <div className="text-sm text-gray-600">
+                    <Clock size={12} className="inline mr-1" />
+                    Last updated: {new Date(binData.organic.last_updated).toLocaleTimeString()}
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    <Wrench size={12} className="inline mr-1" />
+                    Last emptied: {getDaysSinceLastMaintenance(binData.organic.last_maintenance)} days ago
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -150,9 +263,17 @@ const Dashboard = () => {
           {/* Inorganic Bin */}
           <Card className={`${inorganicStatus.bgColor} ${binData.inorganic.fill_level > 90 ? 'animate-pulse border-red-500' : ''}`}>
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Recycle className="text-blue-600" size={24} />
-                <span>Inorganic Bin 🧴</span>
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Recycle className="text-blue-600" size={24} />
+                  <span>Inorganic Bin 🧴</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Battery className={inorganicBattery.color} size={16} />
+                  <span className={`text-sm ${inorganicBattery.color}`}>
+                    {binData.inorganic.battery_level}%
+                  </span>
+                </div>
               </CardTitle>
               <CardDescription>Non-biodegradable waste container</CardDescription>
             </CardHeader>
@@ -171,9 +292,32 @@ const Dashboard = () => {
                   <span>Empty</span>
                   <span>Full</span>
                 </div>
-                <div className="text-center text-sm text-gray-600">
-                  <Clock size={12} className="inline mr-1" />
-                  Last updated: {new Date(binData.inorganic.last_updated).toLocaleTimeString()}
+                
+                {/* Additional Info */}
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="bg-white/50 p-3 rounded-lg">
+                    <div className="font-medium text-gray-700">Time to Full</div>
+                    <div className="text-blue-600 font-semibold">
+                      {getTimeToFull(binData.inorganic.fill_level, binData.inorganic.fill_rate)}
+                    </div>
+                  </div>
+                  <div className="bg-white/50 p-3 rounded-lg">
+                    <div className="font-medium text-gray-700">Fill Rate</div>
+                    <div className="text-purple-600 font-semibold">
+                      {binData.inorganic.fill_rate.toFixed(1)}%/hr
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="text-center space-y-1">
+                  <div className="text-sm text-gray-600">
+                    <Clock size={12} className="inline mr-1" />
+                    Last updated: {new Date(binData.inorganic.last_updated).toLocaleTimeString()}
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    <Wrench size={12} className="inline mr-1" />
+                    Last emptied: {getDaysSinceLastMaintenance(binData.inorganic.last_maintenance)} days ago
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -187,9 +331,12 @@ const Dashboard = () => {
             <CardDescription>Current operational parameters and thresholds</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
               <div className="text-center">
-                <div className="text-2xl font-bold text-green-600 mb-1">Online</div>
+                <div className="text-2xl font-bold text-green-600 mb-1 flex items-center justify-center">
+                  <Zap className="mr-1" size={20} />
+                  Online
+                </div>
                 <div className="text-sm text-gray-600">System Status</div>
               </div>
               <div className="text-center">
@@ -205,6 +352,12 @@ const Dashboard = () => {
                   {autoRefresh ? "5s" : "Manual"}
                 </div>
                 <div className="text-sm text-gray-600">Update Interval</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-orange-600 mb-1">
+                  {Math.round((binData.organic.battery_level + binData.inorganic.battery_level) / 2)}%
+                </div>
+                <div className="text-sm text-gray-600">Avg Battery</div>
               </div>
             </div>
           </CardContent>
