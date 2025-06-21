@@ -1,5 +1,5 @@
 
-import { ArrowDown, Database, TrendingUp, Camera } from "lucide-react";
+import { ArrowDown, Database, TrendingUp, Camera, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
@@ -10,17 +10,17 @@ const Index = () => {
     {
       icon: Database,
       title: "Real-time Monitoring",
-      description: "Live tracking of bin fill levels using ultrasonic sensors with instant updates via IoT connectivity."
+      description: "Live tracking of bin fill levels for both organic and inorganic waste with instant alerts when bins reach capacity."
     },
     {
       icon: Camera,
-      title: "AI-Powered Classification",
-      description: "Advanced machine learning model classifies waste into Recyclable, Organic, and Non-Recyclable categories."
+      title: "AI Waste Classifier",
+      description: "Use your phone camera to classify waste as biodegradable or non-biodegradable with advanced machine learning."
     },
     {
-      icon: TrendingUp,
-      title: "Smart Analytics",
-      description: "Comprehensive dashboard with usage patterns, waste distribution analysis, and sustainability metrics."
+      icon: BarChart3,
+      title: "Data History & Analytics",
+      description: "Comprehensive tracking of waste patterns, usage trends, and detailed analytics for better waste management."
     }
   ];
 
@@ -33,22 +33,27 @@ const Index = () => {
         <div className="max-w-4xl mx-auto">
           <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
             SmartBin
-            <span className="block text-green-600">Intelligent Waste Management</span>
+            <span className="block text-green-600">Intelligent Waste Monitoring</span>
           </h1>
           <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto leading-relaxed">
-            Revolutionizing waste management through IoT sensors, computer vision, and machine learning. 
-            Monitor, classify, and optimize waste collection for a sustainable future.
+            Monitor waste levels in real-time, classify trash with AI-powered camera detection, 
+            and optimize waste collection for a sustainable future.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
             <Link to="/dashboard">
               <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg">
-                View Live Dashboard
+                View Dashboard
+              </Button>
+            </Link>
+            <Link to="/camera-classifier">
+              <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 text-lg">
+                Try AI Sorter
               </Button>
             </Link>
             <Link to="/analytics">
-              <Button variant="outline" size="lg" className="border-green-600 text-green-600 hover:bg-green-50 px-8 py-4 text-lg">
-                Explore Analytics
+              <Button variant="outline" size="lg" className="border-purple-600 text-purple-600 hover:bg-purple-50 px-8 py-4 text-lg">
+                See Analytics
               </Button>
             </Link>
           </div>
@@ -66,8 +71,8 @@ const Index = () => {
             Key Features
           </h2>
           <p className="text-gray-600 text-center mb-16 max-w-2xl mx-auto">
-            Our smart bin combines cutting-edge hardware with intelligent software to create 
-            the most advanced waste management solution.
+            Our smart bin system combines IoT sensors with AI-powered classification 
+            to create the most advanced waste management solution.
           </p>
           
           <div className="grid md:grid-cols-3 gap-8">
@@ -97,15 +102,15 @@ const Index = () => {
           <div className="grid md:grid-cols-3 gap-8">
             <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6">
               <h3 className="text-xl font-semibold mb-3">Sustainability</h3>
-              <p className="text-green-100">Optimize waste sorting and reduce environmental impact through intelligent classification.</p>
+              <p className="text-green-100">Optimize waste sorting and reduce environmental impact through intelligent monitoring and classification.</p>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6">
               <h3 className="text-xl font-semibold mb-3">Automation</h3>
-              <p className="text-blue-100">Eliminate manual monitoring with real-time sensor data and automated alerts.</p>
+              <p className="text-blue-100">Eliminate manual monitoring with real-time sensor data and automated alerts for efficient waste management.</p>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6">
               <h3 className="text-xl font-semibold mb-3">Smart Cities</h3>
-              <p className="text-purple-100">Enable data-driven decisions for efficient urban waste management systems.</p>
+              <p className="text-purple-100">Enable data-driven decisions for efficient urban waste management systems and cleaner communities.</p>
             </div>
           </div>
         </div>
@@ -120,6 +125,7 @@ const Index = () => {
             <Link to="/dashboard" className="text-gray-400 hover:text-green-400 transition-colors">Dashboard</Link>
             <Link to="/analytics" className="text-gray-400 hover:text-green-400 transition-colors">Analytics</Link>
             <Link to="/history" className="text-gray-400 hover:text-green-400 transition-colors">History</Link>
+            <Link to="/camera-classifier" className="text-gray-400 hover:text-green-400 transition-colors">AI Classifier</Link>
           </div>
         </div>
       </footer>

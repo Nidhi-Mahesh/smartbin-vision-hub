@@ -5,81 +5,91 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Calendar, Filter, Download, Camera } from "lucide-react";
+import { Calendar, Filter, Download, Leaf, Recycle } from "lucide-react";
 import Header from "@/components/Header";
 
 const History = () => {
-  const [filterLabel, setFilterLabel] = useState("all");
+  const [filterBinType, setFilterBinType] = useState("all");
   const [dateRange, setDateRange] = useState("");
 
-  // Sample data - in real app this would come from Firebase/API
+  // Sample data - bin fill events instead of image classifications
   const historyData = [
     {
       id: 1,
-      image: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=300&h=200&fit=crop",
-      label: "Recyclable",
-      confidence: 0.94,
-      timestamp: "2025-06-21T10:30:00Z"
+      binType: "Organic",
+      fillLevel: 67,
+      timestamp: "2025-06-21T10:30:00Z",
+      eventType: "Fill Level Update"
     },
     {
       id: 2,
-      image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=300&h=200&fit=crop",
-      label: "Organic",
-      confidence: 0.87,
-      timestamp: "2025-06-21T09:15:00Z"
+      binType: "Inorganic",
+      fillLevel: 45,
+      timestamp: "2025-06-21T09:15:00Z",
+      eventType: "Fill Level Update"
     },
     {
       id: 3,
-      image: "https://images.unsplash.com/photo-1501854140801-50d01698950b?w=300&h=200&fit=crop",
-      label: "Non-Recyclable",
-      confidence: 0.92,
-      timestamp: "2025-06-21T08:45:00Z"
+      binType: "Organic",
+      fillLevel: 92,
+      timestamp: "2025-06-21T08:45:00Z",
+      eventType: "Alert Triggered"
     },
     {
       id: 4,
-      image: "https://images.unsplash.com/photo-1615729947596-a598e5de0ab3?w=300&h=200&fit=crop",
-      label: "Recyclable",
-      confidence: 0.89,
-      timestamp: "2025-06-21T07:20:00Z"
+      binType: "Inorganic",
+      fillLevel: 78,
+      timestamp: "2025-06-21T07:20:00Z",
+      eventType: "Fill Level Update"
     },
     {
       id: 5,
-      image: "https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=300&h=200&fit=crop",
-      label: "Organic",
-      confidence: 0.76,
-      timestamp: "2025-06-20T18:30:00Z"
+      binType: "Organic",
+      fillLevel: 0,
+      timestamp: "2025-06-20T18:30:00Z",
+      eventType: "Bin Emptied"
     },
     {
       id: 6,
-      image: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=300&h=200&fit=crop",
-      label: "Non-Recyclable",
-      confidence: 0.88,
-      timestamp: "2025-06-20T16:10:00Z"
+      binType: "Inorganic",
+      fillLevel: 15,
+      timestamp: "2025-06-20T16:10:00Z",
+      eventType: "Fill Level Update"
     }
   ];
 
-  const getPredictionColor = (label: string) => {
-    switch (label) {
-      case "Recyclable": return "bg-blue-100 text-blue-800";
-      case "Organic": return "bg-green-100 text-green-800";
-      case "Non-Recyclable": return "bg-gray-100 text-gray-800";
+  const getBinIcon = (binType: string) => {
+    return binType === "Organic" ? Leaf : Recycle;
+  };
+
+  const getBinColor = (binType: string) => {
+    return binType === "Organic" 
+      ? "bg-green-100 text-green-800" 
+      : "bg-blue-100 text-blue-800";
+  };
+
+  const getEventColor = (eventType: string) => {
+    switch (eventType) {
+      case "Alert Triggered": return "bg-red-100 text-red-800";
+      case "Bin Emptied": return "bg-purple-100 text-purple-800";
       default: return "bg-gray-100 text-gray-800";
     }
   };
 
   const filteredData = historyData.filter(item => {
-    if (filterLabel !== "all" && item.label !== filterLabel) return false;
+    if (filterBinType !== "all" && item.binType !== filterBinType) return false;
     // Add date filtering logic here if needed
     return true;
   });
 
   const exportToCSV = () => {
     const csvContent = [
-      ["ID", "Label", "Confidence", "Timestamp"],
+      ["ID", "Bin Type", "Fill Level %", "Event Type", "Timestamp"],
       ...filteredData.map(item => [
         item.id,
-        item.label,
-        item.confidence,
+        item.binType,
+        item.fillLevel,
+        item.eventType,
         item.timestamp
       ])
     ].map(row => row.join(",")).join("\n");
@@ -99,8 +109,8 @@ const History = () => {
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Trash Classification History</h1>
-            <p className="text-gray-600 mt-2">Browse and analyze past waste classifications</p>
+            <h1 className="text-3xl font-bold text-gray-900">Bin Fill History</h1>
+            <p className="text-gray-600 mt-2">Timeline of bin fill events and alerts</p>
           </div>
           
           <Button onClick={exportToCSV} className="flex items-center space-x-2">
@@ -121,17 +131,16 @@ const History = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Filter by Label
+                  Filter by Bin Type
                 </label>
-                <Select value={filterLabel} onValueChange={setFilterLabel}>
+                <Select value={filterBinType} onValueChange={setFilterBinType}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
+                    <SelectValue placeholder="Select bin type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Categories</SelectItem>
-                    <SelectItem value="Recyclable">Recyclable</SelectItem>
+                    <SelectItem value="all">All Bins</SelectItem>
                     <SelectItem value="Organic">Organic</SelectItem>
-                    <SelectItem value="Non-Recyclable">Non-Recyclable</SelectItem>
+                    <SelectItem value="Inorganic">Inorganic</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -150,7 +159,7 @@ const History = () => {
                 <Button 
                   variant="outline" 
                   onClick={() => {
-                    setFilterLabel("all");
+                    setFilterBinType("all");
                     setDateRange("");
                   }}
                   className="w-full"
@@ -177,45 +186,50 @@ const History = () => {
                 <table className="w-full">
                   <thead className="bg-gray-50 border-b">
                     <tr>
-                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">Image</th>
-                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">Predicted Label</th>
-                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">Confidence</th>
+                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">Bin Type</th>
+                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">Fill Level</th>
+                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">Event Type</th>
                       <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">Timestamp</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {filteredData.map((item) => (
-                      <tr key={item.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4">
-                          <div className="w-20 h-16 rounded-lg overflow-hidden bg-gray-100">
-                            <img 
-                              src={item.image} 
-                              alt={`Classification ${item.id}`}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <Badge className={getPredictionColor(item.label)}>
-                            {item.label}
-                          </Badge>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center space-x-2">
-                            <span className="font-medium">{Math.round(item.confidence * 100)}%</span>
-                            <div className="w-16 h-2 bg-gray-200 rounded-full">
-                              <div 
-                                className="h-2 bg-blue-600 rounded-full"
-                                style={{ width: `${item.confidence * 100}%` }}
-                              />
+                    {filteredData.map((item) => {
+                      const BinIcon = getBinIcon(item.binType);
+                      return (
+                        <tr key={item.id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4">
+                            <div className="flex items-center space-x-3">
+                              <BinIcon className={item.binType === "Organic" ? "text-green-600" : "text-blue-600"} size={20} />
+                              <Badge className={getBinColor(item.binType)}>
+                                {item.binType}
+                              </Badge>
                             </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-600">
-                          {new Date(item.timestamp).toLocaleString()}
-                        </td>
-                      </tr>
-                    ))}
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center space-x-2">
+                              <span className="font-medium">{item.fillLevel}%</span>
+                              <div className="w-16 h-2 bg-gray-200 rounded-full">
+                                <div 
+                                  className={`h-2 rounded-full ${
+                                    item.fillLevel < 60 ? 'bg-green-500' : 
+                                    item.fillLevel < 90 ? 'bg-yellow-500' : 'bg-red-500'
+                                  }`}
+                                  style={{ width: `${item.fillLevel}%` }}
+                                />
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <Badge className={getEventColor(item.eventType)}>
+                              {item.eventType}
+                            </Badge>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-600">
+                            {new Date(item.timestamp).toLocaleString()}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -225,39 +239,41 @@ const History = () => {
 
         {/* Mobile Card View */}
         <div className="md:hidden space-y-4">
-          {filteredData.map((item) => (
-            <Card key={item.id}>
-              <CardContent className="p-4">
-                <div className="flex space-x-4">
-                  <div className="w-20 h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-                    <img 
-                      src={item.image} 
-                      alt={`Classification ${item.id}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="flex-1 space-y-2">
+          {filteredData.map((item) => {
+            const BinIcon = getBinIcon(item.binType);
+            return (
+              <Card key={item.id}>
+                <CardContent className="p-4">
+                  <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <Badge className={getPredictionColor(item.label)}>
-                        {item.label}
+                      <div className="flex items-center space-x-3">
+                        <BinIcon className={item.binType === "Organic" ? "text-green-600" : "text-blue-600"} size={20} />
+                        <Badge className={getBinColor(item.binType)}>
+                          {item.binType}
+                        </Badge>
+                      </div>
+                      <span className="text-lg font-medium">{item.fillLevel}%</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <Badge className={getEventColor(item.eventType)}>
+                        {item.eventType}
                       </Badge>
-                      <span className="text-sm font-medium">{Math.round(item.confidence * 100)}%</span>
                     </div>
                     <div className="text-sm text-gray-600">
                       <Calendar size={12} className="inline mr-1" />
                       {new Date(item.timestamp).toLocaleString()}
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
 
         {filteredData.length === 0 && (
           <Card>
             <CardContent className="text-center py-12">
-              <Camera className="mx-auto text-gray-400 mb-4" size={48} />
+              <Calendar className="mx-auto text-gray-400 mb-4" size={48} />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No records found</h3>
               <p className="text-gray-600">Try adjusting your filters to see more results.</p>
             </CardContent>

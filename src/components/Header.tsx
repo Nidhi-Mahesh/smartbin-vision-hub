@@ -1,7 +1,7 @@
 
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Database, TrendingUp, Camera, Settings, Home, LogOut, Shield } from "lucide-react";
+import { Database, TrendingUp, Camera, Settings, Home, LogOut, History } from "lucide-react";
 import { useState, useEffect } from "react";
 
 const Header = () => {
@@ -23,7 +23,8 @@ const Header = () => {
   const navItems = [
     { path: "/", label: "Home", icon: Home },
     { path: "/dashboard", label: "Dashboard", icon: Database },
-    { path: "/history", label: "History", icon: Camera },
+    { path: "/camera-classifier", label: "AI Classifier", icon: Camera },
+    { path: "/history", label: "History", icon: History },
     { path: "/analytics", label: "Analytics", icon: TrendingUp },
   ];
 
@@ -60,22 +61,14 @@ const Header = () => {
 
           <div className="flex items-center space-x-2">
             {isLoggedIn ? (
-              <>
-                <Link to="/admin">
-                  <Button variant="outline" className="flex items-center space-x-2">
-                    <Shield size={16} />
-                    <span>Admin Panel</span>
-                  </Button>
-                </Link>
-                <Button 
-                  onClick={handleLogout}
-                  variant="outline" 
-                  className="flex items-center space-x-2 text-red-600 border-red-200 hover:bg-red-50"
-                >
-                  <LogOut size={16} />
-                  <span>Logout</span>
-                </Button>
-              </>
+              <Button 
+                onClick={handleLogout}
+                variant="outline" 
+                className="flex items-center space-x-2 text-red-600 border-red-200 hover:bg-red-50"
+              >
+                <LogOut size={16} />
+                <span>Logout</span>
+              </Button>
             ) : (
               <Link to="/login">
                 <Button variant="outline" className="flex items-center space-x-2">
@@ -105,18 +98,6 @@ const Header = () => {
               </Button>
             </Link>
           ))}
-          {isLoggedIn && (
-            <Link to="/admin">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="flex items-center space-x-2 whitespace-nowrap text-gray-600"
-              >
-                <Shield size={14} />
-                <span>Admin</span>
-              </Button>
-            </Link>
-          )}
         </nav>
       </div>
     </header>

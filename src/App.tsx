@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import History from "./pages/History";
 import Analytics from "./pages/Analytics";
+import CameraClassifier from "./pages/CameraClassifier";
 import Login from "./pages/Login";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
@@ -23,6 +24,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/camera-classifier" element={<CameraClassifier />} />
           <Route path="/history" element={<History />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/login" element={<Login />} />
