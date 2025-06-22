@@ -1,352 +1,260 @@
-
-import { useState, useRef, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useRef } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Camera, CheckCircle, XCircle, Loader2, RefreshCw } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import Header from "@/components/Header";
-import { useToast } from "@/hooks/use-toast";
+import { Progress } from "@/components/ui/progress";
+
+const BACKEND_URL = "http://localhost:5000/predict";
+
+interface PredictionResult {
+  predicted_class: string;
+  biodegradability: string;
+  confidence: number;
+  disposal_info?: {
+    biodegradable: boolean;
+    recycling_info: string;
+    decomposition_time: string;
+  };
+  all_predictions?: Array<{
+    class: string;
+    confidence: number;
+    biodegradable: string;
+  }>;
+}
 
 const CameraClassifier = () => {
-  const [stream, setStream] = useState<MediaStream | null>(null);
-  const [capturedImage, setCapturedImage] = useState<string | null>(null);
-  const [prediction, setPrediction] = useState<{label: string, confidence: number} | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [result, setResult] = useState<PredictionResult | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [cameraActive, setCameraActive] = useState(false);
-  const [predictionHistory, setPredictionHistory] = useState<Array<{
-    id: number;
-    image: string;
-    label: string;
-    confidence: number;
-    timestamp: string;
-    feedback?: 'correct' | 'incorrect';
-  }>>([]);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { toast } = useToast();
-
+  // Start camera
   const startCamera = async () => {
     try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
-          facingMode: 'environment', // Use back camera on mobile
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        } 
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: 'environment' } 
       });
-      
-      setStream(mediaStream);
-      setCameraActive(true);
-      
       if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
+        videoRef.current.srcObject = stream;
+        videoRef.current.play();
+        setCameraActive(true);
+        setError(null);
       }
-    } catch (error) {
-      console.error('Error accessing camera:', error);
-      toast({
-        title: "Camera Error",
-        description: "Unable to access camera. Please check permissions.",
-        variant: "destructive"
+    } catch (err) {
+      setError("Camera access denied or not available");
+    }
+  };
+
+  // Capture image and send to backend
+  const captureAndClassify = async () => {
+    if (!videoRef.current || !canvasRef.current) return;
+    
+    const ctx = canvasRef.current.getContext("2d");
+    if (!ctx) return;
+    
+    ctx.drawImage(videoRef.current, 0, 0, 224, 224);
+    canvasRef.current.toBlob(async (blob) => {
+      if (!blob) return;
+      await classifyImage(blob);
+    }, "image/jpeg");
+  };
+
+  // Handle file upload
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      classifyImage(file);
+    }
+  };
+
+  // Common classification function
+  const classifyImage = async (imageBlob: Blob) => {
+    setLoading(true);
+    setResult(null);
+    setError(null);
+    
+    const formData = new FormData();
+    formData.append("file", imageBlob, "image.jpg");
+    
+    try {
+      const response = await fetch(BACKEND_URL, {
+        method: "POST",
+        body: formData,
       });
-    }
-  };
-
-  const stopCamera = () => {
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-      setStream(null);
-      setCameraActive(false);
-    }
-  };
-
-  const captureImage = () => {
-    if (videoRef.current && canvasRef.current) {
-      const canvas = canvasRef.current;
-      const video = videoRef.current;
       
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        ctx.drawImage(video, 0, 0);
-        const imageData = canvas.toDataURL('image/jpeg', 0.8);
-        setCapturedImage(imageData);
-        classifyImage(imageData);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
+      
+      const data = await response.json();
+      setResult(data);
+    } catch (err) {
+      setError(`Classification failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const classifyImage = async (imageData: string) => {
-    setIsLoading(true);
-    setPrediction(null);
-    
-    // Simulate ML model prediction
-    setTimeout(() => {
-      const labels = ['Biodegradable', 'Non-Biodegradable'];
-      const randomLabel = labels[Math.floor(Math.random() * labels.length)];
-      const confidence = 0.75 + Math.random() * 0.25;
-      
-      const newPrediction = {
-        label: randomLabel,
-        confidence: confidence
-      };
-      
-      setPrediction(newPrediction);
-      setIsLoading(false);
-
-      // Add to history
-      const historyEntry = {
-        id: Date.now(),
-        image: imageData,
-        label: randomLabel,
-        confidence: confidence,
-        timestamp: new Date().toISOString()
-      };
-      
-      setPredictionHistory(prev => [historyEntry, ...prev.slice(0, 9)]); // Keep last 10
-
-      toast({
-        title: "Classification Complete",
-        description: `Predicted: ${randomLabel} (${Math.round(confidence * 100)}% confidence)`,
-      });
-    }, 2000);
+  const getBadgeVariant = (biodegradability: string) => {
+    return biodegradability === 'Biodegradable' ? 'default' : 'destructive';
   };
-
-  const provideFeedback = (id: number, feedback: 'correct' | 'incorrect') => {
-    setPredictionHistory(prev => 
-      prev.map(item => 
-        item.id === id ? { ...item, feedback } : item
-      )
-    );
-    
-    toast({
-      title: "Feedback Recorded",
-      description: `Thank you for helping improve our model!`,
-    });
-  };
-
-  const retakePhoto = () => {
-    setCapturedImage(null);
-    setPrediction(null);
-  };
-
-  useEffect(() => {
-    return () => {
-      stopCamera();
-    };
-  }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      
-      <div className="max-w-4xl mx-auto px-6 py-8">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">AI Waste Classifier 📷</h1>
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            Use your camera to classify waste as biodegradable or non-biodegradable using our 
-            machine learning model. Point your camera at any waste item and get instant results!
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div className="max-w-4xl mx-auto p-4 space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            🗂️ AI Waste Classifier
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
           {/* Camera Section */}
+          <div className="flex flex-col items-center space-y-4">
+            <video 
+              ref={videoRef} 
+              width={300} 
+              height={300} 
+              className="border rounded-lg"
+              style={{ display: "block" }} 
+            />
+            <canvas 
+              ref={canvasRef} 
+              width={224} 
+              height={224} 
+              style={{ display: "none" }} 
+            />
+            
+            {/* Controls */}
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={startCamera} disabled={loading}>
+                📷 {cameraActive ? 'Camera Active' : 'Start Camera'}
+              </Button>
+              <Button 
+                onClick={captureAndClassify} 
+                disabled={loading || !cameraActive}
+              >
+                {loading ? "Analyzing..." : "📸 Capture & Classify"}
+              </Button>
+              <Button 
+                onClick={() => fileInputRef.current?.click()}
+                disabled={loading}
+              >
+                📁 Upload Image
+              </Button>
+            </div>
+            
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFileUpload}
+              style={{ display: "none" }}
+            />
+          </div>
+
+          {/* Loading State */}
+          {loading && (
+            <div className="text-center py-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+              <p>Analyzing your image...</p>
+            </div>
+          )}
+
+          {/* Error State */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+              {error}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Results */}
+      {result && (
+        <div className="space-y-4">
+          {/* Main Result */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Camera className="text-blue-600" size={20} />
-                <span>Camera Feed</span>
+              <CardTitle className="flex items-center justify-between">
+                <span className="capitalize text-2xl">{result.predicted_class}</span>
+                <Badge variant={getBadgeVariant(result.biodegradability)}>
+                  {result.biodegradability}
+                </Badge>
               </CardTitle>
-              <CardDescription>Capture waste items for AI classification</CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {!cameraActive ? (
-                  <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
-                    <div className="text-center">
-                      <Camera className="mx-auto text-gray-400 mb-4" size={48} />
-                      <p className="text-gray-600 mb-4">Camera not active</p>
-                      <Button onClick={startCamera} className="bg-blue-600 hover:bg-blue-700">
-                        Start Camera
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="relative">
-                    <video
-                      ref={videoRef}
-                      autoPlay
-                      playsInline
-                      muted
-                      className="w-full aspect-video bg-black rounded-lg"
-                    />
-                    <div className="absolute inset-0 border-2 border-dashed border-white/50 rounded-lg flex items-center justify-center pointer-events-none">
-                      <div className="text-white text-center bg-black/50 p-2 rounded">
-                        <p className="text-sm">Position waste item in frame</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
-                <canvas ref={canvasRef} className="hidden" />
-                
-                <div className="flex space-x-2">
-                  {cameraActive ? (
-                    <>
-                      <Button onClick={captureImage} className="flex-1 bg-green-600 hover:bg-green-700">
-                        <Camera size={16} className="mr-2" />
-                        Capture & Classify
-                      </Button>
-                      <Button onClick={stopCamera} variant="outline">
-                        Stop Camera
-                      </Button>
-                    </>
-                  ) : (
-                    <Button onClick={startCamera} className="w-full">
-                      <Camera size={16} className="mr-2" />
-                      Start Camera
-                    </Button>
-                  )}
+            <CardContent className="space-y-4">
+              {/* Confidence */}
+              <div>
+                <div className="flex justify-between mb-2">
+                  <span className="font-medium">Confidence</span>
+                  <span className="font-bold">{(result.confidence * 100).toFixed(1)}%</span>
                 </div>
+                <Progress value={result.confidence * 100} className="h-3" />
               </div>
+
+              {/* Disposal Information */}
+              {result.disposal_info && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h4 className="font-semibold text-blue-800 mb-3">♻️ Disposal Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-white p-3 rounded border-l-4 border-green-500">
+                      <strong className="block text-gray-700 mb-1">Recycling</strong>
+                      <span className="text-sm text-gray-600">
+                        {result.disposal_info.recycling_info}
+                      </span>
+                    </div>
+                    <div className="bg-white p-3 rounded border-l-4 border-orange-500">
+                      <strong className="block text-gray-700 mb-1">Decomposition Time</strong>
+                      <span className="text-sm text-gray-600">
+                        {result.disposal_info.decomposition_time}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
-          {/* Results Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <span>Classification Results</span>
-                {isLoading && <Loader2 className="animate-spin text-blue-600" size={20} />}
-              </CardTitle>
-              <CardDescription>AI prediction results and feedback</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {capturedImage && (
-                  <div className="space-y-4">
-                    <div className="aspect-video rounded-lg overflow-hidden bg-gray-100">
-                      <img 
-                        src={capturedImage} 
-                        alt="Captured waste item"
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    
-                    {isLoading && (
-                      <Alert>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        <AlertDescription>
-                          Analyzing image with AI model... This may take a moment.
-                        </AlertDescription>
-                      </Alert>
-                    )}
-                    
-                    {prediction && !isLoading && (
-                      <div className="space-y-4">
-                        <div className="text-center">
-                          <Badge 
-                            className={`text-lg py-2 px-4 ${
-                              prediction.label === 'Biodegradable' 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-orange-100 text-orange-800'
-                            }`}
-                          >
-                            {prediction.label}
-                          </Badge>
-                          <p className="text-2xl font-bold mt-2">
-                            {Math.round(prediction.confidence * 100)}% Confidence
-                          </p>
-                        </div>
-                        
-                        <div className="flex space-x-2">
-                          <Button 
-                            onClick={() => provideFeedback(Date.now(), 'correct')}
-                            className="flex-1 bg-green-600 hover:bg-green-700"
-                          >
-                            <CheckCircle size={16} className="mr-2" />
-                            Correct
-                          </Button>
-                          <Button 
-                            onClick={() => provideFeedback(Date.now(), 'incorrect')}
-                            variant="destructive"
-                            className="flex-1"
-                          >
-                            <XCircle size={16} className="mr-2" />
-                            Incorrect
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                    
-                    <Button onClick={retakePhoto} variant="outline" className="w-full">
-                      <RefreshCw size={16} className="mr-2" />
-                      Take Another Photo
-                    </Button>
-                  </div>
-                )}
-                
-                {!capturedImage && !isLoading && (
-                  <div className="text-center py-8">
-                    <Camera className="mx-auto text-gray-400 mb-4" size={48} />
-                    <p className="text-gray-600">Capture an image to see AI classification results</p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Prediction History */}
-        {predictionHistory.length > 0 && (
-          <Card className="mt-8">
-            <CardHeader>
-              <CardTitle>Recent Classifications</CardTitle>
-              <CardDescription>Your recent AI predictions and feedback</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {predictionHistory.slice(0, 6).map((item) => (
-                  <div key={item.id} className="border rounded-lg p-3 space-y-2">
-                    <img 
-                      src={item.image} 
-                      alt="Previous classification"
-                      className="w-full h-24 object-cover rounded"
-                    />
-                    <div className="flex items-center justify-between">
-                      <Badge 
-                        className={`text-xs ${
-                          item.label === 'Biodegradable' 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-orange-100 text-orange-800'
-                        }`}
-                      >
-                        {item.label}
-                      </Badge>
-                      <span className="text-xs font-medium">{Math.round(item.confidence * 100)}%</span>
-                    </div>
-                    {item.feedback && (
-                      <div className="flex items-center space-x-1">
-                        {item.feedback === 'correct' ? (
-                          <CheckCircle className="text-green-600" size={14} />
-                        ) : (
-                          <XCircle className="text-red-600" size={14} />
-                        )}
-                        <span className="text-xs text-gray-600">
-                          Marked as {item.feedback}
+          {/* All Predictions */}
+          {result.all_predictions && (
+            <Card>
+              <CardHeader>
+                <CardTitle>📊 All Predictions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {result.all_predictions.map((pred, index) => (
+                    <div 
+                      key={pred.class}
+                      className={`flex justify-between items-center p-3 rounded-lg border ${
+                        index === 0 ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className={`font-medium capitalize ${index === 0 ? 'text-green-800' : 'text-gray-700'}`}>
+                          {pred.class}
                         </span>
+                        <Badge 
+                          variant={pred.biodegradable === 'Biodegradable' ? 'default' : 'secondary'}
+                          className="text-xs"
+                        >
+                          {pred.biodegradable}
+                        </Badge>
                       </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+                      <span className={`font-bold ${index === 0 ? 'text-green-800' : 'text-gray-600'}`}>
+                        {(pred.confidence * 100).toFixed(1)}%
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
     </div>
   );
 };
