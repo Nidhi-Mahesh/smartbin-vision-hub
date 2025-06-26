@@ -58,7 +58,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     const organicRef = ref(db, "/dustbin/organic_fill_percent");
-    const unsubscribe = onValue(organicRef, (snapshot) => {
+    const unsubscribeOrganic = onValue(organicRef, (snapshot) => {
       setBinData(prev => ({
         ...prev,
         organic: {
@@ -68,7 +68,21 @@ const Dashboard = () => {
         }
       }));
     });
-    return () => unsubscribe();
+    const inorganicRef = ref(db, "/dustbin/inorganic_fill_percent");
+    const unsubscribeInorganic = onValue(inorganicRef, (snapshot) => {
+      setBinData(prev => ({
+        ...prev,
+        inorganic: {
+          ...prev.inorganic,
+          fill_level: snapshot.val() ?? prev.inorganic.fill_level,
+          last_updated: new Date().toISOString(),
+        }
+      }));
+    });
+    return () => {
+      unsubscribeOrganic();
+      unsubscribeInorganic();
+    };
   }, []);
 
   useEffect(() => {
@@ -83,7 +97,6 @@ const Dashboard = () => {
           },
           inorganic: {
             ...prev.inorganic,
-            fill_level: Math.max(0, Math.min(100, prev.inorganic.fill_level + (Math.random() - 0.3) * 2)),
             last_updated: new Date().toISOString(),
             battery_level: Math.max(0, Math.min(100, prev.inorganic.battery_level + (Math.random() - 0.5) * 2)),
             fill_rate: Math.max(0.1, prev.inorganic.fill_rate + (Math.random() - 0.5) * 0.2)
