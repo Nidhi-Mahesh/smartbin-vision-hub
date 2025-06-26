@@ -198,6 +198,10 @@ def get_classes():
         'total_classes': len(CLASS_NAMES)
     })
 
+@app.route("/")
+def home():
+    return "SmartBin Flask API is running!"
+
 if __name__ == '__main__':
     print("Starting Flask server...")
     print(f"Supported classes: {CLASS_NAMES}")

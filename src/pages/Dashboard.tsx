@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,6 +7,8 @@ import { Leaf, Recycle, Clock, AlertTriangle, ArrowUp, Battery, Wrench, Zap } fr
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import Header from "@/components/Header";
 import { useToast } from "@/hooks/use-toast";
+import { db } from "@/lib/firebase";
+import { ref, onValue } from "firebase/database";
 
 const Dashboard = () => {
   const [binData, setBinData] = useState({
@@ -56,12 +57,26 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
+    const organicRef = ref(db, "/dustbin/organic_fill_percent");
+    const unsubscribe = onValue(organicRef, (snapshot) => {
+      setBinData(prev => ({
+        ...prev,
+        organic: {
+          ...prev.organic,
+          fill_level: snapshot.val() ?? prev.organic.fill_level,
+          last_updated: new Date().toISOString(),
+        }
+      }));
+    });
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
     if (autoRefresh) {
       const interval = setInterval(() => {
         setBinData(prev => ({
           organic: {
             ...prev.organic,
-            fill_level: Math.max(0, Math.min(100, prev.organic.fill_level + (Math.random() - 0.3) * 2)),
             last_updated: new Date().toISOString(),
             battery_level: Math.max(0, Math.min(100, prev.organic.battery_level + (Math.random() - 0.5) * 2)),
             fill_rate: Math.max(0.1, prev.organic.fill_rate + (Math.random() - 0.5) * 0.2)
@@ -75,7 +90,6 @@ const Dashboard = () => {
           }
         }));
       }, 5000);
-
       return () => clearInterval(interval);
     }
   }, [autoRefresh]);

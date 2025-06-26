@@ -1,8 +1,10 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { db } from "@/lib/firebase";
+import { ref, onValue } from "firebase/database";
 
 const BACKEND_URL = "http://localhost:5000/predict";
 
@@ -30,6 +32,15 @@ const CameraClassifier = () => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [organicLevel, setOrganicLevel] = useState<number | null>(null);
+
+  useEffect(() => {
+    const organicRef = ref(db, "/dustbin/organic_fill_percent");
+    const unsubscribe = onValue(organicRef, (snapshot) => {
+      setOrganicLevel(snapshot.val());
+    });
+    return () => unsubscribe();
+  }, []);
 
   // Start camera
   const startCamera = async () => {

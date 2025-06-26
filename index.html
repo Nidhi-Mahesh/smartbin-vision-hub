@@ -19,6 +19,38 @@
 
   <body>
     <div id="root"></div>
+    <div style="margin: 2rem 0; display: flex; gap: 2rem; justify-content: center;">
+      <div style="padding: 1rem 2rem; border-radius: 8px; background: #e6ffe6; box-shadow: 0 2px 8px #0001; min-width: 220px; text-align: center;">
+        <span style="font-weight: bold; font-size: 1.1rem; color: #228B22;">Organic Trash Level</span><br />
+        <span id="organic-level" style="font-size: 2rem; font-weight: bold;">--</span>
+      </div>
+      <div style="padding: 1rem 2rem; border-radius: 8px; background: #f0f0ff; box-shadow: 0 2px 8px #0001; min-width: 220px; text-align: center;">
+        <span style="font-weight: bold; font-size: 1.1rem; color: #1e40af;">Inorganic Trash Level</span><br />
+        <span id="inorganic-level" style="font-size: 2rem; font-weight: bold;">--</span>
+      </div>
+    </div>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"></script>
+    <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyCodkQ54z31P2HGdF5kxB2L__NOrzIuT8Y",
+        databaseURL: "https://smartbin-b7000-default-rtdb.asia-southeast1.firebasedatabase.app"
+      };
+      const app = firebase.initializeApp(firebaseConfig);
+      const db = firebase.database();
+      db.ref("/dustbin/organic_fill_percent").on("value", (snapshot) => {
+        const fill = snapshot.val();
+        const el = document.getElementById("organic-level");
+        el.innerText = fill + "%";
+        el.style.color = fill >= 80 ? "#b91c1c" : "#228B22";
+      });
+      db.ref("/dustbin/inorganic_fill_percent").on("value", (snapshot) => {
+        const fill = snapshot.val();
+        const el = document.getElementById("inorganic-level");
+        el.innerText = fill + "%";
+        el.style.color = fill >= 80 ? "#b91c1c" : "#1e40af";
+      });
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
