@@ -13,16 +13,16 @@ import { ref, onValue } from "firebase/database";
 const Dashboard = () => {
   const [binData, setBinData] = useState({
     organic: {
-      fill_level: 45,
+      fill_level: 0,
       last_updated: new Date().toISOString(),
-      battery_level: 85,
+      battery_level: 100,
       last_maintenance: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
       fill_rate: 2.3 // percentage per hour
     },
     inorganic: {
-      fill_level: 78,
+      fill_level: 0,
       last_updated: new Date().toISOString(),
-      battery_level: 92,
+      battery_level: 100,
       last_maintenance: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
       fill_rate: 1.8 // percentage per hour
     }
@@ -58,7 +58,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     const organicRef = ref(db, "/dustbin/organic_fill_percent");
-    const unsubscribeOrganic = onValue(organicRef, (snapshot) => {
+    const unsubscribe = onValue(organicRef, (snapshot) => {
       setBinData(prev => ({
         ...prev,
         organic: {
@@ -68,21 +68,7 @@ const Dashboard = () => {
         }
       }));
     });
-    const inorganicRef = ref(db, "/dustbin/inorganic_fill_percent");
-    const unsubscribeInorganic = onValue(inorganicRef, (snapshot) => {
-      setBinData(prev => ({
-        ...prev,
-        inorganic: {
-          ...prev.inorganic,
-          fill_level: snapshot.val() ?? prev.inorganic.fill_level,
-          last_updated: new Date().toISOString(),
-        }
-      }));
-    });
-    return () => {
-      unsubscribeOrganic();
-      unsubscribeInorganic();
-    };
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -92,13 +78,12 @@ const Dashboard = () => {
           organic: {
             ...prev.organic,
             last_updated: new Date().toISOString(),
-            battery_level: Math.max(0, Math.min(100, prev.organic.battery_level + (Math.random() - 0.5) * 2)),
             fill_rate: Math.max(0.1, prev.organic.fill_rate + (Math.random() - 0.5) * 0.2)
           },
           inorganic: {
             ...prev.inorganic,
+            fill_level: Math.max(0, Math.min(100, prev.inorganic.fill_level + (Math.random() - 0.3) * 2)),
             last_updated: new Date().toISOString(),
-            battery_level: Math.max(0, Math.min(100, prev.inorganic.battery_level + (Math.random() - 0.5) * 2)),
             fill_rate: Math.max(0.1, prev.inorganic.fill_rate + (Math.random() - 0.5) * 0.2)
           }
         }));
@@ -152,21 +137,34 @@ const Dashboard = () => {
   const organicBattery = getBatteryStatus(binData.organic.battery_level);
   const inorganicBattery = getBatteryStatus(binData.inorganic.battery_level);
 
-  const handleManualRefresh = () => {
-    setBinData(prev => ({
-      organic: {
-        ...prev.organic,
-        last_updated: new Date().toISOString()
-      },
-      inorganic: {
-        ...prev.inorganic,
-        last_updated: new Date().toISOString()
-      }
-    }));
-    toast({
-      title: "Data Refreshed",
-      description: "Bin data has been updated manually"
-    });
+  const handleManualRefresh = (side: 'left' | 'right') => {
+    if (side === 'left') {
+      setBinData(prev => ({
+        ...prev,
+        organic: {
+          ...prev.organic,
+          fill_level: Math.min(100, prev.organic.fill_level + 5),
+          last_updated: new Date().toISOString()
+        }
+      }));
+      toast({
+        title: "Organic Bin Updated",
+        description: "Added 5% to organic bin"
+      });
+    } else {
+      setBinData(prev => ({
+        ...prev,
+        inorganic: {
+          ...prev.inorganic,
+          fill_level: Math.min(100, prev.inorganic.fill_level + 5),
+          last_updated: new Date().toISOString()
+        }
+      }));
+      toast({
+        title: "Inorganic Bin Updated",
+        description: "Added 5% to inorganic bin"
+      });
+    }
   };
 
   return (
@@ -185,14 +183,27 @@ const Dashboard = () => {
           </div>
           
           <div className="flex items-center space-x-4">
-            <Button
-              onClick={handleManualRefresh}
-              variant="outline"
-              className="flex items-center space-x-2"
-            >
-              <ArrowUp size={16} />
-              <span>Manual Refresh</span>
-            </Button>
+            <div className="relative w-48 h-10">
+              <Button
+                onClick={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const clickX = e.clientX - rect.left;
+                  const side = clickX < rect.width / 2 ? 'left' : 'right';
+                  handleManualRefresh(side);
+                }}
+                variant="outline"
+                className="w-full h-full flex items-center justify-center relative"
+              >
+                <div className="absolute inset-0 flex">
+                  <div className="w-1/2 flex items-center justify-center text-sm font-medium text-blue-600 border-r border-white-300">
+                    Manual
+                  </div>
+                  <div className="w-1/2 flex items-center justify-center text-sm font-medium text-blue-600">
+                    Refresh
+                  </div>
+                </div>
+              </Button>
+            </div>
             <Button
               onClick={() => setAutoRefresh(!autoRefresh)}
               variant={autoRefresh ? "default" : "outline"}
