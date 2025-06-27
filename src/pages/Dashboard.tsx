@@ -184,7 +184,7 @@ const Dashboard = () => {
             </div>
           </div>
           
-          <div className="flex items-center space-x-4">
+          <div className="flex flex-wrap items-center gap-2 sm:space-x-4 sm:gap-0 justify-end">
             <Button
               onClick={handleManualRefresh}
               variant="outline"
