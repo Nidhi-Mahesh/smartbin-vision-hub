@@ -13,6 +13,7 @@ const CameraClassifier = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cameraActive, setCameraActive] = useState(false);
+  const [wasteType, setWasteType] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   // Load Teachable Machine model
@@ -75,6 +76,28 @@ const CameraClassifier = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Handle click on the wide button
+  const handleWideButtonClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+    const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    let type: string;
+    let message: string;
+
+    if (x < rect.width / 2) {
+      type = "Inorganic";
+      message = "This is inorganic waste. Put it in the right bin.";
+    } else {
+      type = "Organic";
+      message = "This is organic waste. Put it in the left bin.";
+    }
+
+    setWasteType(type);
+
+    // Speech synthesis
+    window.speechSynthesis.cancel(); // Stop any previous speech
+    window.speechSynthesis.speak(new SpeechSynthesisUtterance(message));
   };
 
   return (
@@ -140,6 +163,20 @@ const CameraClassifier = () => {
           </CardContent>
         </Card>
       )}
+      {/* Waste Type Box and Wide Button */}
+      <div className="mt-8 flex flex-col items-center space-y-4">
+        <div className="w-64 h-16 flex items-center justify-center rounded-lg border-2 border-gray-300 bg-gray-50 text-2xl font-bold" style={{ minHeight: '4rem' }}>
+          {wasteType ? `${wasteType} Waste` : "Waste type:"}
+        </div>
+        <div
+          className="w-64 h-12 rounded-lg bg-gradient-to-r from-green-200 to-blue-200 cursor-pointer flex items-center justify-between select-none"
+          onClick={handleWideButtonClick}
+          title=""
+        >
+          <span className="w-1/2 text-center text-gray-700 font-semibold"></span>
+          <span className="w-1/2 text-center text-gray-700 font-semibold"></span>
+        </div>
+      </div>
     </div>
   );
 };
