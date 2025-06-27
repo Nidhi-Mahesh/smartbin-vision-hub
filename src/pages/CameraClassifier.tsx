@@ -3,6 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { db } from "@/lib/firebase";
+import { ref, onValue } from "firebase/database";
+import Header from "@/components/Header";
 import * as tmImage from "@teachablemachine/image";
 
 const TM_LABELS = ["Banana", "Pen", "Book"];

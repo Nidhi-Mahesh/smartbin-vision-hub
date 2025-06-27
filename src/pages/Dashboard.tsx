@@ -182,7 +182,8 @@ const Dashboard = () => {
             </div>
           </div>
           
-          <div className="flex items-center space-x-4">
+
+          <div className="flex flex-wrap items-center gap-2 sm:space-x-4 sm:gap-0 justify-end">
             <div className="relative w-48 h-10">
               <Button
                 onClick={(e) => {
@@ -192,8 +193,7 @@ const Dashboard = () => {
                   handleManualRefresh(side);
                 }}
                 variant="outline"
-                className="w-full h-full flex items-center justify-center relative"
-              >
+                className="w-full h-full flex items-center justify-center relative">
                 <div className="absolute inset-0 flex">
                   <div className="w-1/2 flex items-center justify-center text-sm font-medium text-blue-600 border-r border-white-300">
                     Manual
@@ -204,19 +204,18 @@ const Dashboard = () => {
                 </div>
               </Button>
             </div>
+
             <Button
               onClick={() => setAutoRefresh(!autoRefresh)}
               variant={autoRefresh ? "default" : "outline"}
-              className="flex items-center space-x-2"
-            >
+              className="flex items-center space-x-2">
               <ArrowUp className={autoRefresh ? "animate-spin" : ""} size={16} />
               <span>{autoRefresh ? "Auto-Refresh ON" : "Auto-Refresh OFF"}</span>
             </Button>
             <Button
               onClick={() => setAlertsEnabled(!alertsEnabled)}
               variant={alertsEnabled ? "default" : "outline"}
-              className="flex items-center space-x-2"
-            >
+              className="flex items-center space-x-2">
               <AlertTriangle size={16} />
               <span>Alerts {alertsEnabled ? "ON" : "OFF"}</span>
             </Button>
